@@ -1,4 +1,4 @@
-# 🎰 Crypto GameFi Platform 🎮
+# 🎰 Crypto Meme War 🎮
 
 **Scissors • Crash • Mines • Turtle • Plinko • Dice • Slot Game**
 
