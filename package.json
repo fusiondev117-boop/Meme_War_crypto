@@ -2,8 +2,8 @@
   "name": "crypto-gamefi",
   "version": "1.0.0",
   "description": "Crypto GameFi Platform - Multi-chain gaming platform",
+  "main": "backend/server.js",
   "scripts": {
-    "postinstall": "echo Installation complete! Run 'npm start' to launch all services.",
     "start": "concurrently -n \"BACKEND,FRONTEND,ADMIN-UI,ADMIN-API,MGMT,CHAT,TURTLE,SCISSORS,MINES,DICE,SLOT,PLINKO,CRASH\" -c \"bgBlue.bold,bgMagenta.bold,bgGreen.bold,bgRed.bold,bgCyan.bold,bgYellow.bold,bgRed.bold,bgWhite.bold,bgBlue,bgMagenta,bgGreen,bgCyan,bgYellow\" \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:admin\" \"npm run start:admin-backend\" \"npm run start:management\" \"npm run start:chat\" \"npm run start:turtle\" \"npm run start:scissors\" \"npm run start:mines\" \"npm run start:dice\" \"npm run start:slot\" \"npm run start:plinko\" \"npm run start:crash\"",
     "start:backend": "npm start --prefix backend",
     "start:frontend": "npm start --prefix frontend",
@@ -17,17 +17,30 @@
     "start:dice": "node backend/dice/DiceService.js",
     "start:slot": "node backend/slot/SlotService.js",
     "start:plinko": "node backend/plinko/PlinkoService.js",
-    "start:crash": "node backend/crash/CrashService.js"
+    "start:crash": "node backend/crash/CrashService.js",
+    "add-rewards": "node backend/scripts/addTestRewards.js"
   },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/crypto-gamefi.git"
   },
   "keywords": [
     "crypto",
     "gaming",
     "blockchain",
-    "gamefi"
+    "gamefi",
+    "casino",
+    "web3",
+    "ethereum",
+    "bitcoin"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
 }
