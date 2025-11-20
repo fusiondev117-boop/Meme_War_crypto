@@ -6,7 +6,7 @@ module.exports = {
     dbInfo: {
         host: '127.0.0.1',
         port: '27017',
-        name: 'PlayZelo'
+        name: 'crypto-gamefi'
     },
     jwt: {
         secret: 'csgoclubggjwttokenfetyuhgbcase45w368w3q',
