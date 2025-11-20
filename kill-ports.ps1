@@ -1,0 +1,1 @@
+# Kill all processes on ga
