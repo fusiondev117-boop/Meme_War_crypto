@@ -88,7 +88,7 @@ exports.getRewardHistoryData = async (req, res) => {
         const { userId } = req.body;
         if (!userId) return res.json({ status: false, message: 'Invalid Request' });
 
-        const historyData = await models.rewardHistoryModel.find({ userId: mongoose.Types.ObjectId(userId) });
+        const historyData = await models.rewardHistoryModel.find({ userId: new mongoose.Types.ObjectId(userId) });
         return res.json({ status: true, data: historyData });
     }
     catch (err) {
@@ -105,7 +105,7 @@ exports.addAdminReward = async (req, res) => {
 
         const data = await new models.rewardHistoryModel({
             historyId: uuidv4(),
-            userId: mongoose.Types.ObjectId(rewardPlayer),
+            userId: new mongoose.Types.ObjectId(rewardPlayer),
             rewardType: 'admin',
             rewardAmount: rewardAmount,
             rewardReason: rewardReason,
@@ -171,7 +171,7 @@ exports.getSpinHistoryData = async (req, res) => {
         const { userId } = req.body;
         if (!userId) return res.json({ status: false, message: 'Invalid Request' });
 
-        const historyData = await models.spinHistoryModel.find({ userId: mongoose.Types.ObjectId(userId) });
+        const historyData = await models.spinHistoryModel.find({ userId: new mongoose.Types.ObjectId(userId) });
         return res.json({ status: true, data: historyData });
     }
     catch (err) {
@@ -188,7 +188,7 @@ exports.addAdminSpin = async (req, res) => {
 
         const data = await new models.spinHistoryModel({
             historyId: uuidv4(),
-            userId: mongoose.Types.ObjectId(spinPlayer),
+            userId: new mongoose.Types.ObjectId(spinPlayer),
             type: 'admin',
             count: spinCount,
             reason: spinReason,

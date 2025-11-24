@@ -4,21 +4,19 @@
   "description": "Crypto GameFi Platform - Multi-chain gaming platform",
   "main": "backend/server.js",
   "scripts": {
-    "start": "concurrently -n \"BACKEND,FRONTEND,ADMIN-UI,ADMIN-API,MGMT,CHAT,TURTLE,SCISSORS,MINES,DICE,SLOT,PLINKO,CRASH\" -c \"bgBlue.bold,bgMagenta.bold,bgGreen.bold,bgRed.bold,bgCyan.bold,bgYellow.bold,bgRed.bold,bgWhite.bold,bgBlue,bgMagenta,bgGreen,bgCyan,bgYellow\" \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:admin\" \"npm run start:admin-backend\" \"npm run start:management\" \"npm run start:chat\" \"npm run start:turtle\" \"npm run start:scissors\" \"npm run start:mines\" \"npm run start:dice\" \"npm run start:slot\" \"npm run start:plinko\" \"npm run start:crash\"",
-    "start:backend": "npm start --prefix backend",
-    "start:frontend": "npm start --prefix frontend",
-    "start:admin": "npm start --prefix admin",
-    "start:admin-backend": "node backend/admin/AdminService.js",
-    "start:management": "node backend/management/ManagementService.js",
-    "start:chat": "node backend/userchat/UserChatService.js",
-    "start:turtle": "node backend/turtlerace/TurtleService.js",
-    "start:scissors": "node backend/scissors/ScissorsService.js",
-    "start:mines": "node backend/mines/MinesService.js",
-    "start:dice": "node backend/dice/DiceService.js",
-    "start:slot": "node backend/slot/SlotService.js",
-    "start:plinko": "node backend/plinko/PlinkoService.js",
-    "start:crash": "node backend/crash/CrashService.js",
-    "add-rewards": "node backend/scripts/addTestRewards.js"
+    "preinstall": "node scripts/check-dependencies.js",
+    "postinstall": "npm run install:all",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../admin && npm install",
+    "check": "node scripts/quick-check.js",
+    "start": "node scripts/start-platform.js",
+    "add-rewards": "node backend/scripts/addTestRewards.js",
+    "migrate-balances": "node backend/scripts/updateUserBalances.js",
+    "fix-balances": "node backend/scripts/forceFixBalances.js",
+    "check-balances": "node backend/scripts/verifyBalances.js",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
   },
   "repository": {
     "type": "git",
@@ -36,11 +34,9 @@
   ],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
+  "devDependencies": {},
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=16.0.0 <=25.x",
     "npm": ">=8.0.0"
   }
 }

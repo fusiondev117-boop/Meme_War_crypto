@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node start-all.js",
     "dev": "nodemon server.js",
     "admin": "nodemon admin/AdminService.js",
     "turtle": "nodemon turtlerace/TurtleService.js",
@@ -51,7 +51,7 @@
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^6.8.3",
+    "mongoose": "^8.8.4",
     "mongoose-sequence": "^5.3.1",
     "node-cron": "^3.0.2",
     "node-random-name": "^1.0.1",
@@ -61,6 +61,6 @@
     "speakeasy": "^2.0.0",
     "tronweb": "^5.1.0",
     "uuid": "^9.0.0",
-    "web3": "^1.8.2"
+    "web3": "^1.10.4"
   }
 }

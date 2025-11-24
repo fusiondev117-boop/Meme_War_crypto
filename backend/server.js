@@ -2,29 +2,33 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
+const compression = require('compression');
 const app = express();
 const server = http.Server(app);
 const config = require('./config');
-const path = require('path');
+const Logger = require('./utils/logger');
 require('dotenv').config({ path: __dirname + '/.env' });
 
 const initController = require('./controllers/initController');
 
-app.use(cors('*'));
-app.use(bodyParser.json({ limit: '1mb', type: 'application/json' }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, authorization");
-    res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-    next();
-});
+// Middleware
+app.use(compression());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'authorization']
+}));
+app.use(bodyParser.json({ limit: '2mb', type: 'application/json' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '2mb' }));
 
 const models = require('./models/index');
-models.mongoose.connect(config.DB)
+models.mongoose.connect(config.DB, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
     .then(() => {
-        console.log('server connected to mongodb successfully');
+        Logger.success('Server connected to MongoDB');
         initController.initCurrencies();
         initController.initTatumBTC();
         initController.initTatumETH();
@@ -32,14 +36,32 @@ models.mongoose.connect(config.DB)
         initController.initTatumBSC();
     })
     .catch((err) => {
-        console.error({ title: 'mongodb connection error', message: err.message });
-        process.exit();
+        Logger.error('MongoDB connection failed', err.message);
+        process.exit(1);
     });
 app.use(express.static('client'));
 
 app.get('/', (req, res) => {
-    res.send('TEST MODE IN HERE')
-})
+    res.json({ 
+        status: 'online', 
+        service: 'Crypto GameFi Backend API',
+        version: '1.0.0',
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy',
+        mongodb: models.mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        uptime: process.uptime()
+    });
+});
 
 app.use('', require('./middleware/index'), require('./routes/index'));
-server.listen(config.SERVER_PORT, () => { console.log(`server started on ${config.SERVER_PORT} port`) });
+
+server.listen(config.SERVER_PORT, () => { 
+    Logger.success(`Backend API started on port ${config.SERVER_PORT}`);
+    Logger.info(`Environment: ${config.isDevelopment ? 'Development' : 'Production'}`);
+    Logger.info(`Health check: http://localhost:${config.SERVER_PORT}/health`);
+});

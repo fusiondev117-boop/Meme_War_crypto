@@ -111,7 +111,7 @@ exports.getWalletDetail = async (req, res) => {
             },
             {
                 $match: {
-                    _id: ObjectId(id)
+                    _id: new mongoose.Types.ObjectId(id)
                 }
             },
             {
@@ -139,7 +139,7 @@ exports.getWalletDetail = async (req, res) => {
             },
             {
                 $match: {
-                    _id: ObjectId(id)
+                    _id: new mongoose.Types.ObjectId(id)
                 }
             },
             {
@@ -171,7 +171,7 @@ exports.getWalletDetail = async (req, res) => {
             },
             {
                 $match: {
-                    _id: ObjectId(id)
+                    _id: new mongoose.Types.ObjectId(id)
                 }
             },
             {

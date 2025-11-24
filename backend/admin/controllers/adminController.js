@@ -232,7 +232,7 @@ exports.getPlayerDetail = async (req, res) => {
     try {
         const { id } = req.body;
         const userData = await models.userModel.findOne({ _id: id });
-        const historyData = await models.betHistoryModel.find({ userId: mongoose.Types.ObjectId(userData._id), roundState: true }).limit(300);
+        const historyData = await models.betHistoryModel.find({ userId: new mongoose.Types.ObjectId(userData._id), roundState: true }).limit(300);
         return res.json({ status: true, data: { historyData, userData } });
     }
     catch (err) {
@@ -349,7 +349,7 @@ exports.getTurtleDetail = async (req, res) => {
             },
             {
                 $match: {
-                    turtleRoundId: ObjectId(id)
+                    turtleRoundId: new mongoose.Types.ObjectId(id)
                 }
             },
             {
@@ -643,7 +643,7 @@ exports.getCrashDetail = async (req, res) => {
             },
             {
                 $match: {
-                    crashRoundId: ObjectId(id)
+                    crashRoundId: new mongoose.Types.ObjectId(id)
                 }
             },
             {

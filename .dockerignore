@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.DS_Store
+*.md
+!README.md
+backend/node_modules
+frontend/node_modules
+admin/node_modules
+frontend/build
+admin/build
+*.log
+.vscode
+.idea

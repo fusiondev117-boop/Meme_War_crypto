@@ -1,12 +1,15 @@
 require('dotenv').config();
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 module.exports = {
-    SERVER_PORT: process.env.SERVER_PORT || 5000,
+    SERVER_PORT: process.env.SERVER_PORT || 5001,
     JWT: {
-        expireIn: '1h',
+        expireIn: '24h',
         secret: process.env.JWT_SECRET || 'PLAYZELOSECRET'
     },
-    DB: process.env.MONGODB_URI || 'mongodb://localhost:27017/crypto-gamefi',
+    DB: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/crypto-gamefi',
+    isDevelopment,
     MANAGEMENT_OPTION: {
         port: 4000
     },

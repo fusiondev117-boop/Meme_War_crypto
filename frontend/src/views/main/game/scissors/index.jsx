@@ -618,9 +618,11 @@ const ScissorWidget = () => {
             const response = event.data.data;
             let historyData = [];
             // eslint-disable-next-line
-            response.history.map((history) => {
-                historyData.push(history.betNumber);
-            });
+            if (response.history && Array.isArray(response.history)) {
+                response.history.map((history) => {
+                    historyData.push(history.betNumber);
+                });
+            }
             setBetHistory([...historyData]);
         }
     };

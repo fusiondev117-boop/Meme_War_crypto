@@ -8,19 +8,27 @@ A modern crypto-powered gaming platform supporting multi-chain tokens and exciti
 
 ---
 
+## 🚀 NEW USERS: [START HERE →](START_HERE.md)
+
+**First time setup?** Follow the [Quick Start Guide](START_HERE.md) (5 minutes)
+
+**Need help?** See [Complete Setup Guide](SETUP_GUIDE.md) with troubleshooting
+
+---
+
 ## 📋 Table of Contents
 
 - [Games Included](#-games-included)
 - [Supported Cryptocurrencies](#-supported-cryptocurrencies)
-- [Project Structure](#-project-structure)
 - [Quick Start](#-quick-start)
-- [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Add Test Rewards](#-add-test-rewards)
+- [Project Structure](#-project-structure)
 - [Architecture](#-architecture)
 - [Troubleshooting](#-troubleshooting)
 - [Security](#-security)
 - [Tech Stack](#-tech-stack)
+- [Deployment](#-deployment)
 - [Contributing](#-contributing)
 
 ---
@@ -84,33 +92,80 @@ A modern crypto-powered gaming platform supporting multi-chain tokens and exciti
 
 ### Prerequisites
 
-* **Node.js** v16+ 
-* **MongoDB** (Local or Atlas)
+* **Node.js** v16+ - [Download](https://nodejs.org/)
+* **MongoDB** - **REQUIRED** - [Installation Guide](INSTALL_MONGODB.md)
+  - Local MongoDB, OR
+  - MongoDB Atlas (Cloud - Free), OR
+  - Docker MongoDB
 * **Web3 Wallet** (MetaMask, TrustWallet, etc.) - Optional
 
 ### Installation
 
+#### Step 1: Install MongoDB
+
+**MongoDB is REQUIRED** - The platform cannot run without it.
+
+**Quick Install:**
+- **Windows**: Download from [MongoDB.com](https://www.mongodb.com/try/download/community) and install as a service
+- **macOS**: `brew install mongodb-community && brew services start mongodb-community`
+- **Linux**: See [INSTALL_MONGODB.md](INSTALL_MONGODB.md)
+- **Docker**: `docker run -d -p 27017:27017 --name mongodb mongo:latest`
+- **Cloud**: Use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register) (Free tier available)
+
+**Detailed instructions**: See [INSTALL_MONGODB.md](INSTALL_MONGODB.md)
+
+#### Step 2: Install Dependencies
+
 ```bash
-# Install all dependencies
+# Install all dependencies (backend, frontend, and admin)
 npm install
 ```
 
-### Start the Platform
+#### Step 3: Configure Environment
 
 ```bash
-# 1. Start MongoDB (Windows - as Administrator)
+# Copy example environment file
+cp backend/.env.example backend/.env
+```
+
+Edit `backend/.env` and update:
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/crypto-gamefi
+JWT_SECRET=your_secure_secret_key
+```
+
+#### Step 4: Start MongoDB
+
+```bash
+# Windows (as Administrator)
 net start MongoDB
 
-# 2. Start all services
+# macOS
+brew services start mongodb-community
+
+# Linux
+sudo systemctl start mongod
+
+# Docker
+docker start mongodb
+```
+
+### Step 5: Start the Platform
+
+```bash
+# Start everything with one command
 npm start
 ```
 
-This starts ALL 13 services simultaneously:
+**The script will:**
+1. Check if MongoDB is running
+2. Verify all dependencies are installed
+3. Start ALL 13 services:
 - Backend API (5001)
 - Frontend (8800)
 - Admin Panel UI (9000)
 - Admin Backend API (6100)
-- All game services
+- All 7 game services
 - Management & Chat services
 
 **Wait 30-60 seconds** for frontend/admin compilation to complete.
@@ -120,9 +175,13 @@ This starts ALL 13 services simultaneously:
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | **Main App** | http://localhost:8800 | Register new account |
-| **Admin Panel** | http://localhost:9000 | admin / admin |
+| **Admin Panel** | http://localhost:9000 | Username: `admin` / Password: `admin` |
 | **Backend API** | http://localhost:5001/api | - |
 | **Admin API** | http://localhost:6100/admin | - |
+
+### Stop the Platform
+
+Press `Ctrl + C` in the terminal where `npm start` is running. All services will stop automatically.
 
 ---
 
@@ -130,55 +189,52 @@ This starts ALL 13 services simultaneously:
 
 ### Backend Configuration
 
-Create/edit `backend/.env`:
+1. Copy the example environment file:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
 
-```env
-MONGODB_URI=mongodb://127.0.0.1:27017/crypto-gamefi
-JWT_SECRET=crypto_gamefi_secret_key_2024
-SERVER_PORT=5001
-TATUM_API_KEY=your_tatum_api_key
-WEB3_PROVIDER=https://mainnet.infura.io/v3/your_infura_key
-```
+2. Edit `backend/.env`:
+   ```env
+   MONGODB_URI=mongodb://127.0.0.1:27017/crypto-gamefi
+   JWT_SECRET=crypto_gamefi_secret_key_2024
+   SERVER_PORT=5001
+   TATUM_API_KEY=your_tatum_api_key
+   WEB3_PROVIDER=https://mainnet.infura.io/v3/your_infura_key
+   ```
 
-### Frontend Configuration
+### Frontend Configuration (Optional)
 
-Create/edit `frontend/.env`:
-
+For Google OAuth, create `frontend/.env`:
 ```env
 REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
-API endpoints are configured in `frontend/src/config/baseConfig.js`:
+### Production Deployment
 
-```javascript
-const isLocal = true;  // Set to false for production
-const dev = 'http://localhost:5001';
-const pro = 'https://your-production-domain.com';
-```
-
-### Admin Configuration
-
-Admin API endpoints in `admin/src/config/baseConfig.js`:
-
-```javascript
-const isLocal = true;  // Set to false for production
-const dev = 'http://localhost:6100/admin';
-```
+Update environment flags in config files:
+- `frontend/src/config/baseConfig.js` - Set `isLocal = false`
+- `admin/src/config/baseConfig.js` - Set `isLocal = false`
 
 ---
 
 ## 💰 Add Test Rewards
 
-To test the platform with crypto balances, add 1000 of each currency to all users:
+### Default Balance for New Users
 
-### Quick Method
+New users automatically receive:
+- **1000 ETH** - For playing games
+- **100 BIC** - Platform currency
+
+### Add More Test Rewards
+
+To add 1000 of each currency to all users:
 
 ```bash
 npm run add-rewards
 ```
 
-### What You Get
-
+This adds:
 - 1000 BTC
 - 1000 ETH
 - 1000 USDT
@@ -186,10 +242,20 @@ npm run add-rewards
 - 1000 TRX
 - 1000 SOL
 
+### Migrate Existing Users
+
+If you have existing users created before the balance update, run:
+
+```bash
+npm run migrate-balances
+```
+
+This ensures all users have at least 1000 ETH and 100 BIC.
+
 ### Steps
 
-1. **Register a user** at http://localhost:8800
-2. **Run the script**: `npm run add-rewards`
+1. **Register a user** at http://localhost:8800 (gets 1000 ETH + 100 BIC automatically)
+2. **Optional**: Run `npm run add-rewards` for more currencies
 3. **Refresh browser** (F5)
 4. **Start playing!**
 
@@ -525,7 +591,8 @@ Cloud Infrastructure
    cd admin
    npm run build
    ```
-
+   Username:admin,
+   Password:admin
 ---
 
 ## 🤝 Contributing
@@ -590,22 +657,43 @@ For issues and questions:
 
 ## 🎉 Quick Reference
 
-### Start Platform
-```bash
-npm start
-```
+### Essential Commands
 
-### Add Test Rewards
 ```bash
+# Install dependencies
+npm install
+
+# Start platform (all services)
+npm start
+
+# Migrate existing users (add 1000 ETH + 100 BIC)
+npm run migrate-balances
+
+# Add test rewards (1000 of each currency)
 npm run add-rewards
+
+# Docker deployment
+npm run docker:up
+npm run docker:down
+npm run docker:logs
 ```
 
 ### Access Points
-- Main App: http://localhost:8800
-- Admin: http://localhost:9000 (admin/admin)
+- **Main App**: http://localhost:8800
+- **Admin Panel**: http://localhost:9000 (admin/admin)
+- **Backend API**: http://localhost:5001/api
 
 ### Stop Platform
-Press `Ctrl + C` in console
+Press `Ctrl + C` in the terminal
+
+---
+
+## 📚 Additional Documentation
+
+- **SETUP.md** - Quick setup guide with troubleshooting
+- **CHANGES.md** - Complete list of optimizations and changes
+- **QUICK_REFERENCE.md** - Command reference card
+- **BALANCE_INFO.md** - User balance and rewards information
 
 ---
 

@@ -5,7 +5,7 @@ exports.saveNewChat = async (data) => {
     try {
         const { userId, text, type } = data;
         const result = await new models.userChatModel({
-            userId: mongoose.Types.ObjectId(userId),
+            userId: new mongoose.Types.ObjectId(userId),
             chatText: text,
             chatType: type,
             date: new Date()

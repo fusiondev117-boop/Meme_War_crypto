@@ -59,7 +59,7 @@ exports.updatePlayerBalance = async (data, warger = false) => {
 
             let clientSeedData = await models.seedModel.findOne({ userId: userId, type: 'client' }).sort({ date: -1 });
             if (!clientSeedData)
-                clientSeedData = await new models.seedModel({ userId: mongoose.Types.ObjectId(userId), type: 'client', seed: generateSeed(), date: new Date() }).save();
+                clientSeedData = await new models.seedModel({ userId: new mongoose.Types.ObjectId(userId), type: 'client', seed: generateSeed(), date: new Date() }).save();
 
             return { status: true, data: { userNickName: userData.userNickName, seed: clientSeedData.seed } };
         }

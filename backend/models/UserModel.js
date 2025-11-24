@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const balanceObject = {
     data: [
         { coinType: 'BTC', balance: 0, chain: 'BTC', type: 'native' },
-        { coinType: 'ETH', balance: 0, chain: 'ETH', type: 'native' },
+        { coinType: 'ETH', balance: 1000, chain: 'ETH', type: 'native' },
         { coinType: 'BNB', balance: 0, chain: 'BNB', type: 'native' },
         { coinType: 'TRX', balance: 0, chain: 'TRON', type: 'native' },
         { coinType: 'USDT', balance: 0, chain: 'ETH', type: 'erc-20' },
@@ -12,6 +12,7 @@ const balanceObject = {
         { coinType: 'USDC', balance: 0, chain: 'ETH', type: 'erc-20' },
         { coinType: 'USDC', balance: 0, chain: 'BNB', type: 'bep-20' },
         { coinType: 'USDC', balance: 0, chain: 'TRON', type: 'trc-20' },
+        { coinType: 'BIC', balance: 100, chain: '', type: '' },
         { coinType: 'ZELO', balance: 0, chain: '', type: '' }
     ]
 }
@@ -28,7 +29,7 @@ const ModelSchema = mongoose.Schema({
     type: { type: String, enum: ['user', 'admin'], default: 'user' },
     balance: { type: Object, default: balanceObject },
     address: { type: Object },
-    currency: { type: Object, default: { coinType: 'BTC', type: 'native' } },
+    currency: { type: Object, default: { coinType: 'ETH', type: 'native' } },
     profileSet: { type: Boolean, default: false },
     campaignCode: { type: String, default: '' },
 }, { autoIndex: true, timestamps: true });

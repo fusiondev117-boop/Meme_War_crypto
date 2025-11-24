@@ -96,9 +96,9 @@ exports.saveBetHistory = async (data) => {
 exports.updateWargerAmount = async (data) => {
     try {
         const { wargerAmount, userId } = data;
-        let wargerData = await models.userWargerModel.findOne({ userId: ObjectId(userId) });
+        let wargerData = await models.userWargerModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         if (!wargerData) {
-            await new models.userWargerModel({ userId: ObjectId(userId), totalWargerAmount: wargerAmount, claimedWargerAmount: 0 }).save();
+            await new models.userWargerModel({ userId: new mongoose.Types.ObjectId(userId), totalWargerAmount: wargerAmount, claimedWargerAmount: 0 }).save();
         }
         else {
             wargerData.totalWargerAmount = Number(wargerData.totalWargerAmount) + wargerAmount;

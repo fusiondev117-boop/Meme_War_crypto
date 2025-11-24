@@ -16,23 +16,21 @@ exports.sendMsg = async (to, subject, html) => {
             to_email: to,
         }
 
-        emailjs
-            .send('service_e11codc', 'template_c0sj1nw', msg, {
+        try {
+            const response = await emailjs.send('service_e11codc', 'template_c0sj1nw', msg, {
                 publicKey: 'rYBKywq0hlACo5yYV',
                 privateKey: 'Y8JotNhzfmM-QWMn7dLWS',
-            })
-            .then(
-                function (response) {
-                    console.log('Email sent successfully:', response.status);
-                },
-                function (err) {
-                    // Silently fail - EmailJS not configured
-                    // To enable emails, configure EmailJS at https://www.emailjs.com/
-                },
-            );
-
-        console.log('Email Successfully Sent!');
-        return { status: true };
+            });
+            console.log('✅ Email sent successfully to:', to, '| Status:', response.status);
+            return { status: true };
+        } catch (err) {
+            console.error('❌ Email sending failed:', err.text || err.message || err);
+            console.error('⚠️  Verification code is still saved in database and logged to console');
+            console.error('To enable emails, configure EmailJS at https://www.emailjs.com/');
+            console.error('Or set up SendGrid by uncommenting the code and adding SENDGRID_API_KEY to .env');
+            // Return success anyway so user can proceed with code from console
+            return { status: true, emailFailed: true };
+        }
     }
     catch (err) {
         console.error({ title: 'emailHelper => sendMsg', message: err.message });

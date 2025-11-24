@@ -36,7 +36,7 @@ exports.getSeedData = async (userId) => {
     try {
         let clientSeedData = await models.seedModel.findOne({ userId: userId, type: 'client' }).sort({ date: -1 });
         if (!clientSeedData) {
-            clientSeedData = await new models.seedModel({ userId: mongoose.Types.ObjectId(userId), type: 'client', seed: generateSeed(), date: new Date() }).save();
+            clientSeedData = await new models.seedModel({ userId: new mongoose.Types.ObjectId(userId), type: 'client', seed: generateSeed(), date: new Date() }).save();
         }
         let serverSeedData = await models.seedModel.findOne({ type: 'server' }).sort({ date: -1 });
         if (!serverSeedData) {
@@ -57,7 +57,7 @@ exports.saveMinesRound = async (roundData) => {
             roundResult: roundData.roundResult,
             roundDate: roundData.roundDate,
             minesCount: roundData.minesCount,
-            userId: mongoose.Types.ObjectId(roundData.userId),
+            userId: new mongoose.Types.ObjectId(roundData.userId),
             betAmount: roundData.betAmount,
             coinType: roundData.coinType,
             payout: roundData.currentPayout,

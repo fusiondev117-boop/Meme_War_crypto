@@ -7,6 +7,88 @@ const mongoose = require('mongoose');
 const { sendMsg, authenticationEmail } = require('../helper/emailHelper');
 const { requestBalanceUpdate } = require('../socket/Manager');
 
+// Default balance for new users: 1000 ETH + 100 BIC
+const getDefaultBalance = () => ({
+    data: [
+        { coinType: 'BTC', balance: 0, chain: 'BTC', type: 'native' },
+        { coinType: 'ETH', balance: 1000, chain: 'ETH', type: 'native' },
+        { coinType: 'BNB', balance: 0, chain: 'BNB', type: 'native' },
+        { coinType: 'TRX', balance: 0, chain: 'TRON', type: 'native' },
+        { coinType: 'USDT', balance: 0, chain: 'ETH', type: 'erc-20' },
+        { coinType: 'USDT', balance: 0, chain: 'BNB', type: 'bep-20' },
+        { coinType: 'USDT', balance: 0, chain: 'TRON', type: 'trc-20' },
+        { coinType: 'USDC', balance: 0, chain: 'ETH', type: 'erc-20' },
+        { coinType: 'USDC', balance: 0, chain: 'BNB', type: 'bep-20' },
+        { coinType: 'USDC', balance: 0, chain: 'TRON', type: 'trc-20' },
+        { coinType: 'BIC', balance: 100, chain: '', type: '' },
+        { coinType: 'ZELO', balance: 0, chain: '', type: '' }
+    ]
+});
+
+const logNewUserCreation = (userData, loginType) => {
+    console.log('═══════════════════════════════════════════════════');
+    console.log(`🎉 NEW USER REGISTERED (${loginType})`);
+    console.log('👤 User:', userData.userNickName);
+    console.log('💰 Starting Balance: 1000 ETH + 100 BIC');
+    console.log('═══════════════════════════════════════════════════');
+};
+
+// Ensure user has minimum balances (1000 ETH + 100 BIC)
+const ensureMinimumBalance = async (userData) => {
+    let needsUpdate = false;
+    
+    // Ensure balance structure exists
+    if (!userData.balance || !userData.balance.data || !Array.isArray(userData.balance.data)) {
+        userData.balance = getDefaultBalance();
+        needsUpdate = true;
+        console.log(`✅ Added balance structure for ${userData.userNickName}`);
+    }
+    
+    // Ensure ETH exists and has minimum 1000
+    let ethIndex = userData.balance.data.findIndex(b => b.coinType === 'ETH' && b.type === 'native');
+    if (ethIndex === -1) {
+        userData.balance.data.push({ coinType: 'ETH', balance: 1000, chain: 'ETH', type: 'native' });
+        needsUpdate = true;
+        console.log(`✅ Added ETH (1000) for ${userData.userNickName}`);
+    } else {
+        const currentEth = userData.balance.data[ethIndex].balance || 0;
+        if (currentEth < 1000) {
+            userData.balance.data[ethIndex].balance = 1000;
+            needsUpdate = true;
+            console.log(`✅ Updated ETH: ${currentEth} → 1000 for ${userData.userNickName}`);
+        }
+    }
+    
+    // Ensure BIC exists and has minimum 100
+    let bicIndex = userData.balance.data.findIndex(b => b.coinType === 'BIC');
+    if (bicIndex === -1) {
+        userData.balance.data.push({ coinType: 'BIC', balance: 100, chain: '', type: '' });
+        needsUpdate = true;
+        console.log(`✅ Added BIC (100) for ${userData.userNickName}`);
+    } else {
+        const currentBic = userData.balance.data[bicIndex].balance || 0;
+        if (currentBic < 100) {
+            userData.balance.data[bicIndex].balance = 100;
+            needsUpdate = true;
+            console.log(`✅ Updated BIC: ${currentBic} → 100 for ${userData.userNickName}`);
+        }
+    }
+    
+    // Ensure currency is set
+    if (!userData.currency || !userData.currency.coinType) {
+        userData.currency = { coinType: 'ETH', type: 'native' };
+        needsUpdate = true;
+        console.log(`✅ Set default currency (ETH) for ${userData.userNickName}`);
+    }
+    
+    if (needsUpdate) {
+        await userData.save();
+        console.log(`💰 User ${userData.userNickName} now has minimum balances: 1000 ETH + 100 BIC`);
+    }
+    
+    return userData;
+};
+
 exports.getAuthData = async (req, res) => {
     try {
         const { token } = req.body;
@@ -48,11 +130,13 @@ exports.userGoogleLogin = async (req, res) => {
                     userNickName: createRandomName(),
                     type: 'user',
                     address: {},
-                    campaignCode: campaignData.exist ? campaignData.code : ''
+                    campaignCode: campaignData.exist ? campaignData.code : '',
+                    balance: getDefaultBalance()
                 }
                 let userToken = JWT.sign({ userName: saveData.userName, type: saveData.type, loginType: saveData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 saveData.userToken = userToken;
                 let data = await new models.userModel(saveData).save();
+                logNewUserCreation(data, 'Google');
 
                 let flag = false;
                 do {
@@ -74,6 +158,9 @@ exports.userGoogleLogin = async (req, res) => {
                 }
             }
             else {
+                // Ensure user has minimum balances on every login
+                userData = await ensureMinimumBalance(userData);
+                
                 let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 userData.updateToken(userToken);
 
@@ -114,11 +201,13 @@ exports.metamaskLogin = async (req, res) => {
                 userNickName: createRandomName(),
                 type: 'user',
                 address: {},
-                campaignCode: campaignData.exist ? campaignData.code : ''
+                campaignCode: campaignData.exist ? campaignData.code : '',
+                balance: getDefaultBalance()
             }
             let userToken = JWT.sign({ userName: saveData.userName, type: saveData.type, loginType: saveData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
             saveData.userToken = userToken;
             let data = await new models.userModel(saveData).save();
+            logNewUserCreation(data, 'Wallet');
 
             let flag = false;
             do {
@@ -140,6 +229,9 @@ exports.metamaskLogin = async (req, res) => {
             }
         }
         else {
+            // Ensure user has minimum balances on every login
+            userData = await ensureMinimumBalance(userData);
+            
             let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
             userData.updateToken(userToken);
             const settingData = await models.gameSettingModel.findOne({ userId: userData._id });
@@ -173,11 +265,20 @@ exports.emailLogin = async (req, res) => {
         }
 
         const response = await sendMsg(emailAddress, 'Authentication Code', authenticationEmail(code));
+        
+        // For development: Always log the code to console
+        console.log('═══════════════════════════════════════════════════');
+        console.log('📧 VERIFICATION CODE FOR:', emailAddress);
+        console.log('🔑 CODE:', code);
+        console.log('═══════════════════════════════════════════════════');
+        
         if (response.status) {
             return res.json({ status: true });
         }
         else {
-            return res.json({ status: false, message: 'Server Error' });
+            // Still return success so user can use the code from console logs
+            console.warn('⚠️  Email failed to send, but code is saved. Check console for code.');
+            return res.json({ status: true, message: 'Code generated (check server console if email not received)' });
         }
     }
     catch (err) {
@@ -202,11 +303,13 @@ exports.verifyEmailCode = async (req, res) => {
                     userNickName: createRandomName(),
                     type: 'user',
                     address: {},
-                    campaignCode: campaignData.exist ? campaignData.code : ''
+                    campaignCode: campaignData.exist ? campaignData.code : '',
+                    balance: getDefaultBalance()
                 }
                 let userToken = JWT.sign({ userName: saveData.userName, type: saveData.type, loginType: saveData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 saveData.userToken = userToken;
                 let data = await new models.userModel(saveData).save();
+                logNewUserCreation(data, 'Email');
 
                 let flag = false;
                 do {
@@ -228,6 +331,9 @@ exports.verifyEmailCode = async (req, res) => {
                 }
             }
             else {
+                // Ensure user has minimum balances on every login
+                userData = await ensureMinimumBalance(userData);
+                
                 let userToken = JWT.sign({ userName: userData.userName, type: userData.type, loginType: userData.loginType }, config.JWT.secret, { expiresIn: config.JWT.expireIn });
                 userData.updateToken(userToken);
 
@@ -314,13 +420,13 @@ exports.getProfileData = async (req, res) => {
         const userData = await models.userModel.findOne({ _id: userId });
         const followers = await models.followingModel.countDocuments({ toUserId: userId });
         const following = await models.followingModel.countDocuments({ fromUserId: userId });
-        const betHistoryData = await models.betHistoryModel.find({ userId: mongoose.Types.ObjectId(userId), roundState: true }).limit(10).sort({ createdAt: -1 });
-        const wargerData = await models.userWargerModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        const betHistoryData = await models.betHistoryModel.find({ userId: new mongoose.Types.ObjectId(userId), roundState: true }).limit(10).sort({ createdAt: -1 });
+        const wargerData = await models.userWargerModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         let betAmount = 0;
         if (wargerData) {
             betAmount = wargerData.totalWargerAmount;
         }
-        const betCount = await models.betHistoryModel.countDocuments({ userId: mongoose.Types.ObjectId(userId), roundState: true });
+        const betCount = await models.betHistoryModel.countDocuments({ userId: new mongoose.Types.ObjectId(userId), roundState: true });
 
         return res.json({ status: true, data: { userData, followData: { followers, following }, betHistoryData, countData: { betAmount, betCount } } });
     }
@@ -389,7 +495,7 @@ exports.getSpinCount = async (req, res) => {
         const countData = await models.spinHistoryModel.aggregate([
             {
                 $match: {
-                    userId: mongoose.Types.ObjectId(userId)
+                    userId: new mongoose.Types.ObjectId(userId)
                 }
             },
             {
@@ -474,7 +580,7 @@ exports.updateCurrency = async (req, res) => {
 exports.updateProfileHistory = async (req, res) => {
     try {
         const { step, userId } = req.body;
-        const betHistoryData = await models.betHistoryModel.find({ userId: mongoose.Types.ObjectId(userId), roundState: true }).sort({ createdAt: -1 }).skip(10 * step).limit(10);
+        const betHistoryData = await models.betHistoryModel.find({ userId: new mongoose.Types.ObjectId(userId), roundState: true }).sort({ createdAt: -1 }).skip(10 * step).limit(10);
         return res.json({ status: true, data: betHistoryData });
     }
     catch (err) {
@@ -523,7 +629,7 @@ exports.getSeedData = async (req, res) => {
 
         let clientSeedData = await models.seedModel.findOne({ userId: userId, type: 'client' }).sort({ date: -1 });
         if (!clientSeedData) {
-            clientSeedData = await new models.seedModel({ userId: mongoose.Types.ObjectId(userId), type: 'client', seed: generateSeed(), date: new Date() }).save();
+            clientSeedData = await new models.seedModel({ userId: new mongoose.Types.ObjectId(userId), type: 'client', seed: generateSeed(), date: new Date() }).save();
         }
         let serverSeedData = await models.seedModel.findOne({ type: 'server' }).sort({ date: -1 });
         if (!serverSeedData) {
@@ -617,7 +723,7 @@ const initBannerText = async () => {
 exports.getPrivacyData = async (req, res) => {
     try {
         const { userId } = req.body;
-        let response = await models.privacySettingModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        let response = await models.privacySettingModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         if (!response) await new models.privacySettingModel({ userId }).save();
 
         response = await models.privacySettingModel.findOne({ userId });
@@ -632,7 +738,7 @@ exports.getPrivacyData = async (req, res) => {
 exports.updatePrivacyData = async (req, res) => {
     try {
         const { userId, privateProfile, showOnlineIndicator } = req.body;
-        await models.privacySettingModel.findOneAndUpdate({ userId: mongoose.Types.ObjectId(userId) }, { privateProfile, showOnlineIndicator });
+        await models.privacySettingModel.findOneAndUpdate({ userId: new mongoose.Types.ObjectId(userId) }, { privateProfile, showOnlineIndicator });
         return res.json({ status: true, data: { privateProfile, showOnlineIndicator } });
     }
     catch (err) {
@@ -644,7 +750,7 @@ exports.updatePrivacyData = async (req, res) => {
 exports.getCampaignCode = async (req, res) => {
     try {
         const { userId, type } = req.body;
-        const response = await models.campaignCodeModel.findOne({ userId: mongoose.Types.ObjectId(userId), type });
+        const response = await models.campaignCodeModel.findOne({ userId: new mongoose.Types.ObjectId(userId), type });
         return res.json({ status: true, data: response });
     }
     catch (err) {
@@ -656,7 +762,7 @@ exports.getCampaignCode = async (req, res) => {
 exports.getCampaignData = async (req, res) => {
     try {
         const { userId, type } = req.body;
-        const campaignCode = await models.campaignCodeModel.findOne({ userId: mongoose.Types.ObjectId(userId), type });
+        const campaignCode = await models.campaignCodeModel.findOne({ userId: new mongoose.Types.ObjectId(userId), type });
         const response = await models.userModel.aggregate([
             {
                 $match: {
@@ -683,7 +789,7 @@ exports.getCampaignData = async (req, res) => {
 exports.claimCampaignAmount = async (req, res) => {
     try {
         const { userId, type } = req.body;
-        const campaignCode = await models.campaignCodeModel.findOne({ userId: mongoose.Types.ObjectId(userId), type });
+        const campaignCode = await models.campaignCodeModel.findOne({ userId: new mongoose.Types.ObjectId(userId), type });
         const wargerData = await models.userModel.aggregate([
             {
                 $match: {
@@ -711,7 +817,7 @@ exports.claimCampaignAmount = async (req, res) => {
             }
         });
 
-        let userData = await models.userModel.findOne({ _id: mongoose.Types.ObjectId(userId) });
+        let userData = await models.userModel.findOne({ _id: new mongoose.Types.ObjectId(userId) });
         let coinIndex = userData.balance.data.findIndex((item) => item.coinType === 'ZELO');
         userData.balance.data[coinIndex].balance = userData.balance.data[coinIndex].balance + amount;
         await models.userModel.findOneAndUpdate({ _id: userId }, { balance: userData.balance });
@@ -741,10 +847,10 @@ exports.claimCampaignAmount = async (req, res) => {
 exports.getUnlockBalance = async (req, res) => {
     try {
         const { userId } = req.body;
-        let response = await models.unlockBalanceModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        let response = await models.unlockBalanceModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         if (!response) {
             await new models.unlockBalanceModel({ userId }).save();
-            response = await models.unlockBalanceModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+            response = await models.unlockBalanceModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         }
         return res.json({ status: true, data: response });
     }
@@ -757,7 +863,7 @@ exports.getUnlockBalance = async (req, res) => {
 exports.getWargerBalance = async (req, res) => {
     try {
         const { userId } = req.body;
-        const wargerData = await models.userWargerModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        const wargerData = await models.userWargerModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         let response = { wargeredAmount: 0, claimedAmount: 0 };
         if (wargerData) {
             response.wargeredAmount = wargerData.totalWargerAmount;
@@ -774,18 +880,18 @@ exports.getWargerBalance = async (req, res) => {
 exports.claimLockedBalance = async (req, res) => {
     try {
         const { userId, claimAmount } = req.body;
-        let wargerData = await models.userWargerModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        let wargerData = await models.userWargerModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         if (wargerData) {
             if (claimAmount > Number(wargerData.totalWargerAmount - wargerData.claimedWargerAmount)) {
                 return res.json({ status: false, message: 'Not valid amount' });
             }
             wargerData.claimedWargerAmount = Number(wargerData.claimedWargerAmount) + Number(claimAmount);
             await wargerData.save();
-            let lockedData = await models.unlockBalanceModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+            let lockedData = await models.unlockBalanceModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
             lockedData.lockedAmount = Number(lockedData.lockedAmount) - Number(claimAmount);
             await lockedData.save();
 
-            let userData = await models.userModel.findOne({ _id: mongoose.Types.ObjectId(userId) });
+            let userData = await models.userModel.findOne({ _id: new mongoose.Types.ObjectId(userId) });
             let coinIndex = userData.balance.data.findIndex((item) => item.coinType === 'ZELO');
             userData.balance.data[coinIndex].balance = userData.balance.data[coinIndex].balance + claimAmount;
             userData.save();
@@ -835,7 +941,7 @@ exports.getTournamentList = async (req, res) => {
 exports.getTournamentWargerDetail = async (req, res) => {
     try {
         let { userIds, startDate, endDate } = req.body;
-        userIds = userIds.map((item) => { return mongoose.Types.ObjectId(item) });
+        userIds = userIds.map((item) => { return new mongoose.Types.ObjectId(item) });
 
         startDate = new Date(startDate);
         endDate = new Date(endDate);
@@ -921,7 +1027,7 @@ exports.getAffiliateUsersData = async (req, res) => {
     try {
         let { userId, type, campaignCode } = req.body;
         if (!campaignCode)
-            campaignCode = await models.campaignCodeModel.findOne({ userId: mongoose.Types.ObjectId(userId), type });
+            campaignCode = await models.campaignCodeModel.findOne({ userId: new mongoose.Types.ObjectId(userId), type });
 
         const endDate = new Date();
         const startDate = new Date(new Date().setDate(endDate.getDate() - 30));
@@ -951,7 +1057,7 @@ exports.getAffiliateEarningData = async (req, res) => {
     try {
         let { userId, type, campaignCode } = req.body;
         if (!campaignCode)
-            campaignCode = await models.campaignCodeModel.findOne({ userId: mongoose.Types.ObjectId(userId), type });
+            campaignCode = await models.campaignCodeModel.findOne({ userId: new mongoose.Types.ObjectId(userId), type });
 
         const endDate = new Date();
         const startDate = new Date(new Date().setDate(endDate.getDate() - 30));
@@ -996,7 +1102,7 @@ exports.getCampaignList = async (req, res) => {
         let campaignData = await models.campaignCodeModel.aggregate([
             {
                 $match: {
-                    userId: mongoose.Types.ObjectId(userId)
+                    userId: new mongoose.Types.ObjectId(userId)
                 }
             },
             {
@@ -1120,7 +1226,7 @@ exports.getTransactionHistory = async (req, res) => {
         const response = await models.walletModel.aggregate([
             {
                 $match: {
-                    userId: mongoose.Types.ObjectId(userId)
+                    userId: new mongoose.Types.ObjectId(userId)
                 }
             },
             {

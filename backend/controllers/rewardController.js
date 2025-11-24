@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 exports.getSpinCount = async (req, res) => {
     try {
         const { userId } = req.body;
-        let response = await models.userFreeSpin.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        let response = await models.userFreeSpin.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         if (!response) {
-            await new models.userFreeSpin({ userId: mongoose.Types.ObjectId(userId), count: 1, availableDate: new Date() }).save();
-            response = await models.userFreeSpin.findOne({ userId: mongoose.Types.ObjectId(userId) });
+            await new models.userFreeSpin({ userId: new mongoose.Types.ObjectId(userId), count: 1, availableDate: new Date() }).save();
+            response = await models.userFreeSpin.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         }
         if (response.availableDate <= new Date()) {
             return res.json({ status: true, data: { count: response.count } });
@@ -25,10 +25,10 @@ exports.getSpinCount = async (req, res) => {
 exports.updateSpinCount = async (req, res) => {
     try {
         const { userId, winAmount } = req.body;
-        let response = await models.userFreeSpin.findOne({ userId: mongoose.Types.ObjectId(userId) });
+        let response = await models.userFreeSpin.findOne({ userId: new mongoose.Types.ObjectId(userId) });
         if (response.availableDate <= new Date() && response.count > 0) {
             response.count = response.count - 1;
-            let lockedData = await models.unlockBalanceModel.findOne({ userId: mongoose.Types.ObjectId(userId) });
+            let lockedData = await models.unlockBalanceModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
             if (lockedData) {
                 lockedData.lockedAmount = Number(lockedData.lockedAmount) + Number(winAmount);
                 lockedData.save();
