@@ -111,6 +111,11 @@ const logTransaction = (userId, type, amount, coinType, details = {}) => {
 
 module.exports = {
     logger,
+    info: logInfo,
+    error: logError,
+    warn: logWarn,
+    debug: logDebug,
+    success: logInfo, // Alias for success messages
     logInfo,
     logError,
     logWarn,
