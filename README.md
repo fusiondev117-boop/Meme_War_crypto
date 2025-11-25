@@ -90,6 +90,8 @@ A modern crypto-powered gaming platform supporting multi-chain tokens and exciti
 
 ## 🚀 Quick Start
 
+Please see QUICK_START.md
+
 ### Prerequisites
 
 * **Node.js** v16+ - [Download](https://nodejs.org/)

@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "postinstall": "node postinstall.js",
     "start": "node start-all.js",
     "dev": "nodemon server.js",
     "admin": "nodemon admin/AdminService.js",
@@ -61,6 +62,7 @@
     "speakeasy": "^2.0.0",
     "tronweb": "^5.1.0",
     "uuid": "^9.0.0",
-    "web3": "^1.10.4"
+    "web3": "^1.10.4",
+    "winston": "^3.18.3"
   }
 }
