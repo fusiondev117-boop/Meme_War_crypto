@@ -5,6 +5,8 @@
   "main": "backend/server.js",
   "scripts": {
     "install-all": "node install.js",
+    "postinstall": "npm run rebuild-native",
+    "rebuild-native": "cd backend && npm rebuild bcrypt",
     "cleanup": "node scripts/cleanup.js",
     "check": "node scripts/quick-check.js",
     "start": "node scripts/start-platform.js",

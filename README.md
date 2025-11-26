@@ -120,7 +120,7 @@ Please see QUICK_START.md
 
 ```bash
 # Install all dependencies (backend, frontend, and admin)
-npm install
+npm run install-all
 ```
 
 #### Step 3: Configure Environment
